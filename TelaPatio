@@ -1,0 +1,349 @@
+/*
+ * Jogo feito para o projeto Castelo do Richard
+ * Estou trabalhando com sitema de combate basico
+ * Acesso ao banco de dados e geração de resultados.
+ */
+package castelo;
+
+import ConexaoBanco.Registro;
+import java.awt.Color;
+import java.awt.Toolkit;
+import java.beans.PropertyVetoException;
+import javax.swing.JOptionPane;
+
+/**
+ *Classe principal onde se encontra 
+ * o menu inicial de todo o jogo.
+ * @author Dream
+ */
+public class TelaPatio extends javax.swing.JFrame {
+
+        
+    /**
+     *Método construtor.
+     * Não recebe nada, deixa o pátio invisivel
+     * até que seja feito login.
+     */
+    public TelaPatio() {
+        System.out.println("Construindo Pátio");
+        initComponents();
+        jpPatio.setVisible(false);
+        txUsuario.grabFocus();
+    }
+    
+    /**
+     * Método usado para definir se a conexão com 
+     * banco de dados será local ou online.
+     * @return True = online. False = local.
+     */
+    public static boolean isOnline(){
+        return cbOnline.isSelected();
+    }
+    
+    static void addPatio(java.awt.Component cpn){
+        desktop.add(cpn);
+    }
+    
+    /**
+     * Retorna as dimensões da janela principal
+     * @return X e Y da janela mãe.
+     */
+    static java.awt.Dimension getPatioSize(){
+        return desktop.getSize();
+    }
+    
+    /**
+     * Método static que abre a tela do pátio.
+     * Ele muda o fundo de tela, torna visível o panel com
+     * os botões do pátio, organiza os personagens e os
+     * busca no banco de dados para uso geral do programa.
+     * @param ic Imagem do fundo de tela.
+     */
+    public static void abrePatio(javax.swing.ImageIcon ic){
+        jFundo.setIcon(ic);
+        jpPatio.setVisible(true);
+        if(Castelo.getLogin().getChar1() != 0){
+            Castelo.setPersonagem1(Registro.usaPersonagem(Castelo.getLogin().getChar1()));
+        }
+        if(Castelo.getLogin().getChar2() != 0){
+            Castelo.setPersonagem2(Registro.usaPersonagem(Castelo.getLogin().getChar2()));
+        }
+        if(Castelo.getLogin().getChar3() != 0){
+            Castelo.setPersonagem3(Registro.usaPersonagem(Castelo.getLogin().getChar3()));
+        }
+        Castelo.organizaPersonagens();
+        Castelo.setAtivo(Castelo.getPersonagem1());
+        System.out.println(Castelo.getLogin().toString());
+    }
+    
+    public static void fechaPatio(javax.swing.ImageIcon ic){
+        jFundo.setIcon(ic);
+        jpPatio.setVisible(false);
+    }
+    
+    /**
+     * Método de Login do jogo.
+     * Ele pega o usuário e senha no banco de dados e os 
+     * compara com o digitado. Permitindo ou não o login no 
+     * jogo e ajudando o jogador a lembrar ou resetar a senha.
+     */
+    private void entrar(){
+            // Pegando valores
+        String usuario = txUsuario.getText();
+        String senha = String.valueOf(txSenha.getPassword());
+        Login login = Registro.buscaLogin("nome", usuario); // cria Login com valores da busca
+        int reset = 1;
+        
+            // Comparando valores
+        if(usuario.equals(login.getNome()) && usuario.length() > 0){
+            System.out.println("login igual");
+            // login ok, testando senha
+            if(senha.equals(login.getSenha())){
+                    // senha ok, abrindo pátio
+                System.out.println("senha igual");
+                jpLogin.setVisible(false);
+                Castelo.setLogin(login);
+                abrePatio(new javax.swing.ImageIcon(getClass().getResource("/castelo/img/gmPatio.jpg")));
+                repaint();
+                
+                // TRAMENTO DOS ERROS
+            }else{
+                // Senha errada
+                reset = JOptionPane.showInternalConfirmDialog(desktop,  // reset >> sim = 0, não = 1
+                        "     Dica de senha: \n\"" + login.getDica() + "\"\nDeseja resetar sua senha?", 
+                        "Senha incorreta!", 0, 2);
+            }
+        }else{
+            // Erro no usuario
+            String mail = ""+JOptionPane.showInternalInputDialog(desktop, "Deseja fazer login atravéz do seu e-mail?", "Login desconhecido, quem é você?", 2);
+            if(mail.length() > 4){
+                login = Registro.buscaLogin("mail", mail);
+                txUsuario.setText(login.getNome());
+                if(login.getNome().length() > 2){
+                    txSenha.grabFocus();
+                }else{
+                    txUsuario.setText("");
+                    JOptionPane.showInternalMessageDialog(desktop, "E-mail não encontrado!", "Pense melhor...", 0);
+                    txUsuario.grabFocus();
+                }
+                
+            }
+        }
+            // Resetando a senha
+        if(reset == 0){
+            JOptionPane.showInternalMessageDialog(desktop, "Envie um e-mail ao administrador.", "Função não habilitada", 1);
+            //pesquisar forma de enviar email automatico
+        }
+    }
+    
+    /**
+     * Método repaint() da tela do pátio.
+     */
+    public static void repinta(){
+        desktop.repaint();
+    }
+    
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
+    private void initComponents() {
+      ...
+    }// </editor-fold>                        
+
+    private void btEntrarActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        entrar();
+    }                                        
+
+    private void btFarmMouseMoved(java.awt.event.MouseEvent evt) {                                  
+        btFarm.setForeground(new java.awt.Color(0, 204, 0));
+        btFarm.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 204, 0), 1, true));
+    }                                 
+
+    private void btFarmMouseExited(java.awt.event.MouseEvent evt) {                                   
+        btFarm.setForeground(new java.awt.Color(255, 255, 0));
+        btFarm.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 0), 1, true));
+    }                                  
+
+    private void btFarmMousePressed(java.awt.event.MouseEvent evt) {                                    
+        btFarm.setForeground(new java.awt.Color(204, 0, 0));
+        btFarm.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 0, 0), 1, true));
+    }                                   
+
+    private void btFarmMouseReleased(java.awt.event.MouseEvent evt) {                                     
+        btFarm.setForeground(new java.awt.Color(0, 204, 0));
+        btFarm.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 204, 0), 1, true));
+                // Instanciando a janela
+        TelaBase tb = new TelaBase("jnFarm", "icFarm", "Abre a portera sô!", desktop.getSize());
+        desktop.add(tb);
+        PnFarm pf = new PnFarm();
+        tb.iniciar(pf);
+        pf.setOk();
+    }                                    
+
+    private void btPvpMouseMoved(java.awt.event.MouseEvent evt) {                                 
+        btPvp.setForeground(new java.awt.Color(0, 204, 0));
+        btPvp.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 204, 0), 1, true));
+    }                                
+
+    private void btPvpMousePressed(java.awt.event.MouseEvent evt) {                                   
+        btPvp.setForeground(new java.awt.Color(204, 0, 0));
+        btPvp.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 0, 0), 1, true));
+    }                                  
+
+    private void btPvpMouseExited(java.awt.event.MouseEvent evt) {                                  
+        btPvp.setForeground(new java.awt.Color(255, 255, 0));
+        btPvp.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 0), 1, true));
+    }                                 
+
+    private void btPvpMouseReleased(java.awt.event.MouseEvent evt) {                                    
+        btPvp.setForeground(new java.awt.Color(0, 204, 0));
+        btPvp.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 204, 0), 1, true));
+            // Instanciando a janela
+        TelaBase tb = new TelaBase("jnPvp", "icPvp", "É hora do pau!", desktop.getSize());
+        desktop.add(tb);
+        PnPvp pp = new PnPvp();
+        tb.iniciar(pp);
+            // Minimiza e restaura a janela para repintar.
+        try{
+            tb.setIcon(true);
+            tb.setIcon(false);
+        }catch(PropertyVetoException ex){
+            System.out.println("TelaPatio pop pvp: " + ex);
+        }
+    }                                   
+
+    private void btGuildaMouseMoved(java.awt.event.MouseEvent evt) {                                    
+        btGuilda.setForeground(new java.awt.Color(0, 204, 0));
+        btGuilda.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 204, 0), 1, true));
+    }                                   
+
+    private void btGuildaMousePressed(java.awt.event.MouseEvent evt) {                                      
+        btGuilda.setForeground(new java.awt.Color(204, 0, 0));
+        btGuilda.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 0, 0), 1, true));
+    }                                     
+
+    private void btGuildaMouseReleased(java.awt.event.MouseEvent evt) {                                       
+        btGuilda.setForeground(new java.awt.Color(0, 204, 0));
+        btGuilda.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 204, 0), 1, true));
+            // Instanciando a janela
+        TelaBase tb = new TelaBase("jnNada", "icGuilda", "Guilda dozamigu", desktop.getSize());
+        desktop.add(tb);
+        PnGuilda pg = new PnGuilda();
+        tb.iniciar(pg);
+    }                                      
+
+    private void btGuildaMouseExited(java.awt.event.MouseEvent evt) {                                     
+        btGuilda.setForeground(new java.awt.Color(255, 255, 0));
+        btGuilda.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 0), 1, true));
+    }                                    
+
+    private void btHomeMouseExited(java.awt.event.MouseEvent evt) {                                   
+        btHome.setForeground(new java.awt.Color(255, 255, 0));
+        btHome.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 0), 1, true));
+    }                                  
+
+    private void btHomeMouseMoved(java.awt.event.MouseEvent evt) {                                  
+        btHome.setForeground(new java.awt.Color(0, 204, 0));
+        btHome.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 204, 0), 1, true));
+    }                                 
+
+    private void btHomeMousePressed(java.awt.event.MouseEvent evt) {                                    
+        btHome.setForeground(new java.awt.Color(204, 0, 0));
+        btHome.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 0, 0), 1, true));
+    }                                   
+
+    private void btHomeMouseReleased(java.awt.event.MouseEvent evt) {                                     
+        btHome.setForeground(new java.awt.Color(0, 204, 0));
+        btHome.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 204, 0), 1, true));
+            // Instanciando a janela
+        TelaBase tb = new TelaBase("jnHome", "icHome", "Lar, doce lar...", desktop.getSize());
+        PnHome ph = new PnHome();
+        desktop.add(tb);
+        tb.iniciar(ph);
+    }                                    
+
+    private void btCadastrarActionPerformed(java.awt.event.ActionEvent evt) {                                            
+                // MUDANDO O PLANO DE FUNDO
+        jpLogin.setVisible(false);
+        int x, y;
+                // ABRINDO TELA DE CADASTRO
+        TelaBase tb = new TelaBase("jnCriacao", "icCriacao", "—QUEM VEM LÁ !?!?!?!", TelaPatio.getPatioSize());
+        tb.tiraFechar();
+        TelaPatio.addPatio(tb);
+        PnCadastro pc = new PnCadastro() { // Abre o  panel com efeito degradê
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                if (g instanceof java.awt.Graphics2D) {
+                    final int R = 0;
+                    final int G = 0;
+                    final int B = 0;
+
+                    java.awt.Paint p =
+                        new java.awt.GradientPaint(0.0f, 0.0f, new java.awt.Color(R, G, B, 0.3f),
+                            getWidth(), 0.0f, new java.awt.Color(R, G, B, 0.1f), true);
+                    java.awt.Graphics2D g2d = (java.awt.Graphics2D)g;
+                    g2d.setPaint(p);
+                    g2d.fillRect(0, 0, getWidth(), getHeight());
+                }
+            }
+        }; // fecha aqui o degradê
+        tb.iniciar(pc);
+    }                                           
+
+    private void txUsuarioKeyPressed(java.awt.event.KeyEvent evt) {                                     
+        if(evt.getKeyCode() == 10){
+            txSenha.grabFocus();
+        }
+    }                                    
+
+    private void txSenhaKeyPressed(java.awt.event.KeyEvent evt) {                                   
+        if(evt.getKeyCode() == 10){
+            entrar();
+        }
+    }                                  
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        String usuario = "Bruno";
+        String senha = "123456";
+        Login login = Registro.buscaLogin("nome", usuario); // cria Login com valores da busca
+        jpLogin.setVisible(false);
+        Castelo.setLogin(login);
+        abrePatio(new javax.swing.ImageIcon(getClass().getResource("/castelo/img/gmPatio.jpg")));
+        repaint();
+    }                                        
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        String usuario = "Affonso";
+        String senha = "123456";
+        Login login = Registro.buscaLogin("nome", usuario); // cria Login com valores da busca
+        jpLogin.setVisible(false);
+        Castelo.setLogin(login);
+        abrePatio(new javax.swing.ImageIcon(getClass().getResource("/castelo/img/gmPatio.jpg")));
+        repaint();
+    }                                        
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+           ...
+    }
+
+    // Variables declaration - do not modify                     
+    private javax.swing.JButton btCadastrar;
+    private javax.swing.JButton btEntrar;
+    private javax.swing.JButton btFarm;
+    ...
+    // End of variables declaration                   
+}
