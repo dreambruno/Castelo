@@ -1,0 +1,163 @@
+/*Jogo feito para o projeto Castelo do Richard
+ *Estou trabalhando com sitema de combate basico
+ *Acesso ao banco de dados e geração de resultados.
+*/
+package castelo;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Classe principal que inicia o jogo.
+ * @author Dream
+ */
+public class Castelo {
+    
+    private static Login login;
+    private static Personagem ativo;
+    private static Personagem personagem1;
+    private static Personagem personagem2;
+    private static Personagem personagem3;
+
+        // Métodos getters e setters estáticos 
+    public static Login getLogin() {
+        return login;
+    }
+    public static void setLogin(Login login) {
+        Castelo.login = login;
+    }
+
+    public static Personagem getAtivo() {
+        return ativo;
+    }
+    public static void setAtivo(Personagem ativo) {
+        Castelo.ativo = ativo;
+    }
+
+    public static Personagem getPersonagem1() {
+        return personagem1;
+    }
+    public static void setPersonagem1(Personagem personagem1) {
+        Castelo.personagem1 = personagem1;
+    }
+
+    public static Personagem getPersonagem2() {
+        return personagem2;
+    }
+    public static void setPersonagem2(Personagem personagem2) {
+        Castelo.personagem2 = personagem2;
+    }
+
+    public static Personagem getPersonagem3() {
+        return personagem3;
+    }
+    public static void setPersonagem3(Personagem personagem3) {
+        Castelo.personagem3 = personagem3;
+    }
+    
+    /**
+     * Método static que retorna a janela principal 
+     * do panel. Usado principalmente para o método repaint() das janelas.
+     * @param cpn Parametro que indica o panel, usualmente usado "this".
+     * @return Retorna o JInternalFrame ou null se nada encontrar.
+     */
+    public static javax.swing.JInternalFrame getJanela(java.awt.Component cpn){
+        return (javax.swing.JInternalFrame)javax.swing.SwingUtilities.getAncestorOfClass(javax.swing.JInternalFrame.class, cpn);
+    }
+    
+    /**
+     *Método utilizado na classe PnCriação, utilizado para
+     * criação de personagem, ele "empurra" os personagens para trás e 
+     * insere o novo personagem no slot 1 e no Ativo.
+     * @param novo Classe Personagem().
+     */
+    public static void inserePersonagem(Personagem novo){
+        if(Castelo.getLogin().getChar3() == 0){ // verifica se o char3 está vazio e se sim...
+            Castelo.setPersonagem3(Castelo.getPersonagem2()); // pega personagem2 e joga no slot 3.
+            Castelo.getLogin().setChar3(Castelo.getPersonagem3().getId()); // insere no login o novo char3.
+            Castelo.getLogin().setChar2(0); // deixa slot 2 vazio.
+            Castelo.getPersonagem2().apaga(); // apaga valores do personagem2.
+        }
+        if(Castelo.getLogin().getChar2() == 0){ // verifica se o char2 está vazio e se sim...
+            Castelo.setPersonagem2(Castelo.getPersonagem1()); // peaga o personagem1 e joga no slot 2.
+            Castelo.getLogin().setChar2(Castelo.getPersonagem2().getId()); // insere no login o novo char2.
+            Castelo.getLogin().setChar1(0); // deixa o slot1 vazio.
+            Castelo.getPersonagem1().apaga(); // apaga valores do personagem ativo.
+        }
+        if(Castelo.getLogin().getChar1() == 0){ // verifica se o char1(ativo) está vazio e se sim...
+            Castelo.setPersonagem1(novo); // adiciona o personagem novo ao personagem1.
+            Castelo.getLogin().setChar1(novo.getId()); // deixa o slot1 como sendo do char novo.
+            Castelo.setAtivo(novo); // coloca o personagem novo como ativo.
+        }
+    }
+    
+    /**
+     * Método que verifica HP do personagem Ativo, 
+     * adiciona mais HP ao seu total, verifica se ultrapassou o hp da classe
+     * e retorna o valor final do HP.
+     * @return Valor do hp atual do personagem.
+     */
+    public static int maisHp(){
+        if(ativo.getJob().getHp() > ativo.getHp()){ //Se o HP da classe for maior q o atual do personagem
+            ativo.setHp(ativo.getHp() + 100); // Adicione 100 de HP
+        }
+        if(ativo.getJob().getHp() < ativo.getHp()){ // Se o HP do personagem ultrapassou o da classe
+                ativo.setHp(ativo.getJob().getHp()); // Seta o valor máximo permitido
+            }
+        ConexaoBanco.Registro.atualizaPersonagem(ativo);
+        return Castelo.ativo.getHp();
+    }
+    
+    /**
+     * Método ainda não criado.
+     */
+    public static void levelUp(){
+        
+        // CRIAR MÉTODO LVL UP
+        
+    }
+    
+    /**
+     * Método que joga pro final os personagens
+     * inexistentes da lista de personagens.
+     */
+    public static void organizaPersonagens(){
+        if(Castelo.getLogin().getChar1() == 0){ // Verifico se o login.char1 está vazio, se sim...
+            Castelo.setPersonagem1(Castelo.getPersonagem2()); // Copio o personagem2 para o personagem1.
+            Castelo.getLogin().setChar1(Castelo.getPersonagem1().getId()); // Altero a referencia no Login do personagem1.
+            Castelo.getLogin().setChar2(0); // Apago a referencia no Login do personagem2.
+            Castelo.getPersonagem2().apaga(); // Apago o personagem2.
+        }
+        if(Castelo.getLogin().getChar2() == 0){ // Verifico se o login.char2 está vazio, se sim...
+            Castelo.setPersonagem2(Castelo.getPersonagem3()); // Copio o personagem3 para o personagem2.
+            Castelo.getLogin().setChar2(Castelo.getPersonagem2().getId()); // Altero a referencia no Login do personagem2.
+            Castelo.getLogin().setChar3(0); // Apago a referencia no Login do personagem3.
+            Castelo.getPersonagem3().apaga(); // Apago o personagem3.
+        }
+    }
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        System.out.println("Bem vindo ao Castelo!");
+        Castelo.login = new Login();
+        Castelo.personagem1 = new Personagem();
+        Castelo.personagem2 = new Personagem();
+        Castelo.personagem3 = new Personagem();
+        Castelo.ativo = personagem1;
+        try{
+                // Abre tela de boas vindas
+            TelaBemVindo tbv = new TelaBemVindo();
+            tbv.setVisible(true);
+                // Espera 3 segundos antes de abrir o programa principal
+            java.lang.Thread.sleep(3000);
+            tbv.dispose(); // fecha tela de boas vindas
+                // Iniciando pátio
+            TelaPatio tl = new TelaPatio();
+            tl.setVisible(true);
+        }catch(InterruptedException ex){
+            Logger.getLogger(TelaBemVindo.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+}
