@@ -1,0 +1,129 @@
+/*
+ * Jogo feito para o projeto Castelo do Richard
+ * Estou trabalhando com sitema de combate basico
+ * Acesso ao banco de dados e gera��o de resultados.
+ */
+package castelo;
+
+/**
+ * Classe Personagem, serve para jogador e monstro e possui dois 
+ * construtores diferentes.
+ * @author Dream
+ */
+public class Personagem {
+    
+    private int id;
+    private boolean ativo;
+    private String nome;
+    private boolean sexo; // True para masculino
+    private Job job;
+    private int clan;
+    private int hp;
+    private int nivel;
+    private int xp;
+    private int poder; // Força
+    private int agilidade; // Destreza
+    private int vigor; // Constituição
+
+    /**
+     * Método construtor padrão.
+     */
+    public Personagem(){
+        this.id = 0;
+        this.ativo = true;
+        this.nome = "";
+        this.sexo = true;
+        this.job = new Job();
+        this.clan = 1;
+        this.hp = 0;
+        this.nivel = 1;
+        this.xp = 0;
+        this.poder = 8;
+        this.agilidade = 8;
+        this.vigor = 8;
+    }
+    
+    /**
+     * Método construtor de monstro padrão.
+     * @param nivel Nível do monstro a ser criado.
+     * @param dificuldade Dificuldade do monstro a ser criado.
+     */
+    public Personagem(int nivel, int dificuldade){
+        this.id = 0;
+        this.ativo = true;
+        this.nome = "Goblin";
+        this.sexo = true;
+        this.clan = 1;
+        this.nivel = nivel;
+        this.xp = 0;
+        this.poder = 10;
+        this.agilidade = 10;
+        this.vigor = 10;
+        this.job = new Job(4, this, dificuldade);
+        this.hp = job.getHp();
+    }
+
+        // Métodos getters e setters
+    public boolean isAtivo() { return ativo; }
+    public void setAtivo(boolean ativo) { this.ativo = ativo; }
+    
+    public int getClan(){ return clan; }
+    public void setClan(int clan){ this.clan = clan; }
+    
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+    
+    public int getHp() { return hp;    }
+    public void setHp(int hp) { this.hp = hp; }
+    
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+
+    public boolean isSexo() { return sexo;    }
+    public void setSexo(boolean sexo) { this.sexo = sexo; }
+
+    public Job getJob() { return job; }
+    public void setJob(Job job) { this.job = job; }
+    
+    public int getNivel() { return nivel; }
+    public void setNivel(int nivel) { this.nivel = nivel; }
+
+    public int getXp() { return xp; }
+    public void setXp(int xp) { this.xp = xp; }
+
+    public int getPoder() { return poder; }
+    public void setPoder(int poder) { this.poder = poder; }
+
+    public int getAgilidade() { return agilidade; }
+    public void setAgilidade(int agilidade) { this.agilidade = agilidade; }
+
+    public int getVigor() { return vigor; }
+    public void setVigor(int vigor) { this.vigor = vigor; }
+    
+    /**
+     * Método utilizado para "apagar" um Personagem, 
+     * esse método reseta os valores deixando a classe 
+     * quase igual quando é criada.
+     */
+    public void apaga(){
+        this.id = 0;
+        this.ativo = true;
+        this.nome = "";
+        this.sexo = true;
+        this.job = new Job();
+        this.clan = 1;
+        this.hp = 0;
+        this.nivel = 1;
+        this.xp = 0;
+        this.poder = 8;
+        this.agilidade = 8;
+        this.vigor = 8;
+    }
+
+    @Override
+    public String toString() {
+        return "Id: #" + id + ", Nome: " + nome + ", Sexo: " + (sexo?"Masculino":"Feminino") + 
+                "\nNivel: " + nivel + ", XP: " + xp + ", Clan: " + clan + 
+                "\nPoder: " + poder + ", Agilidade: " + agilidade + ", Vigor: " + vigor + ".\n";
+    }
+}
