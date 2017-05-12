@@ -1,0 +1,394 @@
+/*
+ * Jogo feito para o projeto Castelo do Richard
+ * Estou trabalhando com sitema de combate basico
+ * Acesso ao banco de dados e gera��o de resultados.
+ */
+package ConexaoBanco;
+
+import castelo.Login;
+import castelo.Personagem;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/**
+ * Classe com todos os métodos de consulta ao banco de dados.
+ * @author Dream
+ */
+public class Registro {
+    
+    /**
+     * Método que insere um personagem no banco de dados e retorna seu id
+     * para ser usado na váriavel personagem.id.
+     * @param p - Classe Personagem()
+     * @return - Integer com a id do personagem criado
+     */
+    public static int criaPersonagem(Personagem p){
+        String query = "INSERT INTO personagem (nome, sexo, classe, nivel, " +
+                        "poder, agilidade, vigor, hp) VALUES (?,?,?,?,?,?,?,?)";
+        
+        Connection conn = Conexao.abreConexao();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        int resultado = 0; // valor de retorno do personagem.id
+        try{
+            System.out.println("Status em criaPersonagem: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ps.setString(1, p.getNome());
+            ps.setInt(2, p.isSexo()?1:0);
+            ps.setInt(3, p.getJob().getId());
+            ps.setInt(4, p.getNivel());
+            ps.setInt(5, p.getPoder());
+            ps.setInt(6, p.getAgilidade());
+            ps.setInt(7, p.getVigor());
+            ps.setInt(8, p.getHp());
+            ps.executeUpdate();
+                    // RETORNANDO O ID DO PERSONAGEM SALVO
+            query = "SELECT id_per FROM personagem WHERE nome = ?";
+            System.out.println("Status em pegando id: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ps.setString(1, p.getNome());
+            rs = ps.executeQuery();
+            rs.next();
+            resultado = rs.getInt(1);
+        } catch (SQLException ex) {
+            System.out.println("sql exception(criaPersonagem): " + ex + "\nSQL: " + ps);
+        }
+    Conexao.fecharConexao();
+    return resultado;
+    }
+    
+    /**
+     * Busca as diferentes classes de personagem do tipo 1 (classe de jogador).
+     * É usada para preencher combos de seleção de classe.
+     * @return - Uma matriz de string com id e nome da classe
+     */
+    public static String[][] preencheJob(){
+        String query = "SELECT id_classe, nome FROM classe WHERE tipo = 1 ORDER BY nome DESC";
+        Connection conn = Conexao.abreConexao();
+        String resultado [][] = null;
+        PreparedStatement ps = null;
+        try{
+            System.out.println("Status em preencheClasse: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+            int i = 0;
+            while(rs.next()){ i++; }
+            resultado = new String[i][2];
+            rs.beforeFirst();
+            while(rs.next()){
+                i--;
+                resultado[i][0] = rs.getString("id_classe");
+                resultado[i][1] = rs.getString("nome") + "o";
+            }
+            
+        }catch(SQLException ex){
+            System.out.println("Erro no SQL(preencheClasse): " + ex + "\nSQL: " + ps);
+        }
+    Conexao.fecharConexao();
+    return resultado;
+    }
+    
+    /**
+     * Busca as guildas de jogadores. É usada pra preencher combo de guilda.
+     * @return - Uma matriz com id e nome da guilda.
+     */
+    public static String[][] preencheClan(){
+        String query = "SELECT id_clan, nome FROM clan ORDER BY nome DESC";
+        Connection conn = Conexao.abreConexao();
+        String resultado [][] = null;
+        PreparedStatement ps = null;
+        try{
+            System.out.println("Status em preencheClan: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+            int i = 0;
+            while(rs.next()){ i++; }
+            resultado = new String[i][2];
+            rs.beforeFirst();
+            while(rs.next()){
+                i--;
+                resultado[i][0] = rs.getString("id_clan");
+                resultado[i][1] = rs.getString("nome");
+            }
+            
+        }catch(SQLException ex){
+            System.out.println("Erro no SQL(preencheClan): " + ex + "\nSQL: " + ps);
+        }
+    Conexao.fecharConexao();
+    return resultado;
+    }
+    
+    /**
+     * Método de busca de personagem. Usado para pegar no banco os personagens do 
+     * jogador e para selecionar oponentes no pvp.
+     * @param id - Identificador do personagem a ser buscado.
+     * @return - Retorna um objeto da classe Personagem()
+     */
+    public static Personagem usaPersonagem(int id){
+        Personagem per = new Personagem();
+        String query = "SELECT id_per, ativo, nome, hp, sexo, clan, nivel, xp, "
+                + "poder, agilidade, vigor, classe FROM personagem WHERE id_per = ?";
+        Connection conn = Conexao.abreConexao();
+        PreparedStatement ps = null;
+        try{
+            System.out.println("Status em usaPersonagem: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()){
+                per.setId(rs.getInt(1));
+                per.setAtivo(rs.getInt(2)==1);
+                per.setNome(rs.getString(3));
+                per.setHp(rs.getInt(4));
+                per.setSexo(rs.getInt(5)==1);
+                per.setClan(rs.getInt(6));
+                per.setNivel(rs.getInt(7));
+                per.setXp(rs.getInt(8));
+                per.setPoder(rs.getInt(9));
+                per.setAgilidade(rs.getInt(10));
+                per.setVigor(rs.getInt(11));
+                per.setJob(new castelo.Job(rs.getInt(12), per));
+            }
+        }catch (SQLException ex) {
+            System.out.println("Erro no SQL(usaPersonagem): " + ex + "\nSQL: " + ps);
+        }
+    Conexao.fecharConexao();
+    return per;
+    }
+    
+    /**
+     * Método que salva no banco as alterações feitas no Personagem().
+     * @param p - O personagem a ser salvo.
+     */
+    public static void atualizaPersonagem(Personagem p){
+        String query = "UPDATE `personagem` SET `nome`= ?, `hp`= ?, " +
+                "`clan`= ?, `nivel`= ?, `xp`= ?, `poder`= ?, `agilidade`= ?, " +
+                "`vigor`= ?, `ativo`= ? WHERE `id_per`= ?;";
+        Connection conn = Conexao.abreConexao();
+        PreparedStatement ps = null;
+        try{
+            System.out.println("Status em atualizaPersonagem: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ps.setString(1, p.getNome());
+            ps.setInt(2, p.getHp());
+            ps.setInt(3, p.getClan());
+            ps.setInt(4, p.getNivel());
+            ps.setInt(5, p.getXp());
+            ps.setInt(6, p.getPoder());
+            ps.setInt(7, p.getAgilidade());
+            ps.setInt(8, p.getVigor());
+            ps.setInt(10, p.getId());
+            ps.setInt(9, (p.isAtivo()?1:0));
+            ps.executeUpdate();
+        }catch(SQLException ex){
+            System.out.println("Erro no SQL(atualizaPersonagem): " + ex + "\nSQL: " + ps);
+        }
+    Conexao.fecharConexao();
+    }
+    
+    /**
+     * Método usado para preencher a tabela que lista personagens para o combate pvp.
+     * Método usado em conjunto com Registro.usaPersonagem().
+     * @param adicional - Clausulas adicioanis para o "where".
+     * @param tabela - A tabela do PnPvp() que receberá os personagens encontrados.
+     * @return - Um array com os ids dos personatens.
+     */
+    public static int[] buscaPvp(String adicional, javax.swing.table.DefaultTableModel tabela){
+        int indice[] = null;
+        String query =  "SELECT p.id_per, p.nome, p.nivel, j.nome, c.nome FROM personagem AS P " +
+                        "JOIN clan AS C ON p.clan = c.id_clan " +
+                        "JOIN classe AS J on p.classe = j.id_classe " +
+                        "WHERE p.ativo = 1 and p.hp > 0 and j.tipo = 1" + adicional +
+                        " and p.id_per <> " + castelo.Castelo.getLogin().getChar1() + 
+                        " and p.id_per <> " + castelo.Castelo.getLogin().getChar2() + 
+                        " and p.id_per <> " + castelo.Castelo.getLogin().getChar3() + 
+                        " ORDER BY c.nome, p.nivel, p.nome";
+        Connection conn = Conexao.abreConexao();
+        PreparedStatement ps = null;
+        try{
+            System.out.println("Status em buscaPvp: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+            // testando pegar resultado
+            tabela.setRowCount(0);
+            int i = 0;
+            while(rs.next()){ i++; }
+            indice = new int[i];
+            i = 0;
+            rs.beforeFirst();
+            while(rs.next()){
+                indice[i++] = rs.getInt(1);
+                tabela.addRow(new Object[]{ // abrindo object
+                    rs.getString(2),
+                    rs.getString(4),
+                    rs.getInt(3),
+                    rs.getString(5)
+                }); // fechando object
+            }
+        }catch(SQLException ex){
+            System.out.println("Erro no SQL(buscaPvp): " + ex + "\nSQL: " + ps);
+        }
+        
+    Conexao.fecharConexao();
+    return indice;
+    }
+    
+    /**
+     * Método que busca as características de uma classe.
+     * Usado na criação de personagem.
+     * @param id - Identificador da classe.
+     * @return - Um array com os valores obtidos.
+     */
+    public static String[] buscaJob(int id){
+        String valores[] = new String[11];
+        String query = "SELECT id_classe, nome, hp, defesa, dano, precisao, " +
+                "critico_chance, critico_dano, velocidade, esquiva, descricao " +
+                "FROM classe WHERE id_classe = " + id;
+        Connection conn = Conexao.abreConexao();
+        PreparedStatement ps = null;
+        try{
+            System.out.println("Status em buscaJob: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+            int i = 0;
+            while(rs.next()){
+                do{
+                    valores[i] = rs.getString(++i);
+                }while(i < 11);
+            }
+        }catch (SQLException ex) {
+            System.out.println("Erro no SQL(buscaJob): " + ex + "\nSQL: " + ps);
+        }
+    Conexao.fecharConexao();
+    return valores;
+    }
+    
+    /**
+     * Método que busca todos os registros com nome indicado. Utilizada para 
+     * validar campos únicos das tabelas Personagem e Login.
+     * @param tabela - Personagem ou Login.
+     * @param nome - Nome a ser verificado.
+     * @return - True se não existir nenhuma ocorrencia e false se houver 1 ou mais.
+     */
+    public static boolean testaDuplicidade(String tabela, String nome){
+        String query = "SELECT COUNT(*) FROM "+ tabela +" WHERE nome = '" + nome + "'";
+        Connection conn = Conexao.abreConexao();
+        PreparedStatement ps = null;
+        try{
+            System.out.println("Status em testaDuplicidade: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            return (rs.getInt(1)==0);
+        }catch(SQLException ex){
+            System.out.println("Erro no SQL(testaDuplicidade): " + ex + "\nSQL: " + ps);
+        }
+    Conexao.fecharConexao();
+    return false;
+    }
+    
+    /**
+     * Método de criação de loguin.
+     * @param l - Classe Login() a ser salva.
+     * @return - Identificador do login salvo.
+     */
+    public static int criaUsuario(Login l){
+        String query = "INSERT INTO castelo.login (nome, senha, mail, dica) VALUES (?, ?, ?, ?)";
+        Connection conn = Conexao.abreConexao();
+        PreparedStatement ps = null;
+        int id = 0;
+        try{
+            System.out.println("Status em criaUsuario: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ps.setString(1, l.getNome());
+            ps.setString(2, l.getSenha());
+            ps.setString(3, l.getMail());
+            ps.setString(4, l.getDica());
+            ps.executeUpdate();
+            
+            // BUSCANDO ID DO USUÁRIO
+            query = "SELECT id_login FROM login WHERE nome = ?";
+            System.out.println("Status em criaUsuario: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ps.setString(1, l.getNome());
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            id = rs.getInt(1);
+        }catch(SQLException ex){
+            System.out.println("Erro no SQL(criaUsuario): " + ex + "\nSQL: " + ps);
+        }
+    Conexao.fecharConexao();
+    return id;
+    }
+    
+    /**
+     * Método que busca no banco o login do usuário. Essa busca podee ser feita 
+     * pelo campo nome ou mail.
+     * @param coluna - Indicador da coluna que será feita a busca.
+     * @param usuario - Valor inserido na tela de login.
+     * @return - Retorna o login completo do usuário.
+     */
+    public static Login buscaLogin(String coluna, String usuario){
+        Login log = new Login();
+        String query = "SELECT id_login, nome, senha, mail, dica, familia, char1, " + 
+                    "char2, char3, vip, ouro FROM login WHERE " + coluna + " = ?";
+        Connection conn = Conexao.abreConexao();
+        PreparedStatement ps = null;
+        try{
+            System.out.println("Status em buscaLogin: " + Conexao.statusConection());
+            ps = conn.prepareStatement(query);
+            ps.setString(1, usuario);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                log.setIdLogin(rs.getInt(1));
+                log.setNome(rs.getString(2));
+                log.setSenha(rs.getString(3));
+                log.setMail(rs.getString(4));
+                log.setDica(rs.getString(5));
+                log.setFamilia(rs.getString(6));
+                log.setChar1(rs.getInt(7));
+                log.setChar2(rs.getInt(8));
+                log.setChar3(rs.getInt(9));
+                log.setVip((rs.getInt(10)));
+                log.setOuro(rs.getInt(11));
+            }
+        }catch(SQLException ex){
+            System.out.println("Erro no SQL(buscaLogin): " + ex + "\nSQL: " + ps);
+        }
+    Conexao.fecharConexao();
+    return log;
+    }
+    
+    /**
+     * Método que atualiza informções no login do usuário.
+     * @param login - Classe Login() a ser atualizada.
+     */
+    public static void atualizaLogin(Login login){
+        String a = login.getChar1() == 0?"NULL":String.valueOf(login.getChar1());
+        String b = login.getChar2() == 0?"NULL":String.valueOf(login.getChar2());
+        String c = login.getChar3() == 0?"NULL":String.valueOf(login.getChar3());
+        String query = "UPDATE login SET nome = ?, senha = ?, mail = ?, dica = ?, " +
+                "familia = ?, char1 = " + a + ", char2 = " + b + ", char3 = " + c + 
+                ", vip = ?, ouro = ? WHERE id_login = ?";
+        Connection conn = Conexao.abreConexao();
+        PreparedStatement ps = null;
+        try {
+            ps = conn.prepareStatement(query);
+            ps.setString(1, login.getNome());
+            ps.setString(2, login.getSenha());
+            ps.setString(3, login.getMail());
+            ps.setString(4, login.getDica());
+            ps.setString(5, login.getFamilia());
+            ps.setInt(6, login.getVip());
+            ps.setInt(7, login.getOuro());
+            ps.setInt(8, login.getIdLogin());
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            System.out.println("Erro no SQL(atualizaLogin): " + ex + "\nSQL: " + ps);
+        }
+    Conexao.fecharConexao();
+    }
+    
+}
