@@ -1,0 +1,201 @@
+/*
+ * Jogo feito para o projeto Castelo do Richard
+ * Estou trabalhando com sitema de combate basico
+ * Acesso ao banco de dados e gera��o de resultados.
+ */
+package castelo;
+
+import ConexaoBanco.Registro;
+
+/**
+ * ClasseJava que define os atributos do personagem devido a sua 
+ * classe de personagem. 
+ * 
+ * Método construtor da classe, recebe o id da classe que se
+ * encontra no banco de dados e um personagem com valores 
+ * pré-definidos.
+ * @param id Identificador da classe no banco de dados.
+ * @param p Personagem com os atributos já definidos.
+ * @author Dream
+ */
+public class Job{
+    private int pod;
+    private int agi;
+    private int vig;
+    
+    private String classeNome;
+    private int id;
+    private int hp;
+    private int defesa;
+    private int dano;
+    private int precisao;
+    private int criticoChance;
+    private float criticoDano;
+    private float velocidade;
+    private int esquiva;
+    private boolean tipo;
+    private String descricao;
+    private int dificuldade;
+
+    /**
+     *      Método construtor da classe Personagem.
+     * Recebe o id da classe que se
+     * encontra no banco de dados e um personagem com valores 
+     * pré-definidos.
+     * @param id Identificador da classe no banco de dados.
+     * @param personagem Personagem com os atributos já definidos.
+     */
+    public Job(int id, Personagem personagem){ // CONSTRUTOR DO PERSONAGEM
+        String valor[] = Registro.buscaJob(id);
+        this.pod = personagem.getPoder() + ((int)personagem.getNivel()/3);
+        this.agi = personagem.getAgilidade() + ((int)personagem.getNivel()/3);
+        this.vig = personagem.getVigor() + ((int)personagem.getNivel()/3);
+        
+        this.id = Integer.parseInt(valor[0]);
+        this.classeNome = valor[1] + (personagem.isSexo()?"o":"a");
+        this.hp = Integer.parseInt(valor[2]);
+        this.defesa = Integer.parseInt(valor[3]);
+        this.dano = Integer.parseInt(valor[4]);
+        this.precisao = Integer.parseInt(valor[5]);
+        this.criticoChance = Integer.parseInt(valor[6]);
+        this.criticoDano = Float.parseFloat(valor[7]);
+        this.velocidade = Float.parseFloat(valor[8]); 
+        this.esquiva = Integer.parseInt(valor[9]);
+        this.tipo = true;
+        this.descricao = valor[10];
+        this.dificuldade = 1;
+    }
+
+    /**
+     *      Método construtor da classe Monstro.
+     * Recebe o id da classe que se
+     * encontra no banco de dados e um personagem com valores 
+     * pré-definidos.
+     * @param id Identificador da classe no banco de dados.
+     * @param personagem Personagem com os atributos já definidos.
+     * @param dificuldade Dificuldade do monstro.
+     */
+    public Job(int id, Personagem personagem, int dificuldade){ // CONSTRUTOR DO MONSTRO
+        String valor[] = Registro.buscaJob(id);
+        this.pod = personagem.getPoder() + ((int)personagem.getNivel()/2);
+        this.agi = personagem.getAgilidade() + ((int)personagem.getNivel()/2);
+        this.vig = personagem.getVigor() + ((int)personagem.getNivel()/2);
+        
+        this.id = Integer.parseInt(valor[0]);
+        this.classeNome = valor[1];
+        this.hp = Integer.parseInt(valor[2]) + (dificuldade * 15);
+        this.defesa = Integer.parseInt(valor[3]) + dificuldade;
+        this.dano = Integer.parseInt(valor[4]) + dificuldade;
+        this.precisao = Integer.parseInt(valor[5]) + (dificuldade * 5);
+        this.criticoChance = Integer.parseInt(valor[6]) + (dificuldade * 5);
+        this.criticoDano = Float.parseFloat(valor[7]);
+        this.velocidade = Float.parseFloat(valor[8]) + (dificuldade * 0.5f);
+        this.esquiva = Integer.parseInt(valor[9]) + (dificuldade * 2);
+        this.tipo = false;
+        this.descricao = valor[10];
+        this.dificuldade = dificuldade;
+    }
+    
+    /**
+     * Método construtor vazio
+     */
+    public Job() { // CONSTRUTOR VAZIO
+        this.pod = 0;
+        this.agi = 0;
+        this.vig = 0;
+        this.classeNome = "";
+        this.id = 0;
+        this.hp = 0;
+        this.defesa = 0;
+        this.dano = 0;
+        this.precisao = 0;
+        this.criticoChance = 0;
+        this.criticoDano = 0;
+        this.velocidade = 0;
+        this.esquiva = 0;
+        this.tipo = true;
+        this.descricao = "";
+        this.dificuldade = 1;
+    }
+    
+    
+    
+        //MÉTODOS GETTERS DOS VALORES DA CLASSE.
+    public String getClasseNome(){
+        return classeNome;
+    }
+    public int getId(){
+        return id;
+    }
+    public int getHp(){
+        return hp * vig;
+    }
+    public int getDefesa(){
+        return defesa * vig;
+    }
+    public int getDano(){
+        return dano * pod;
+    }
+    public int getPrecisao(){
+        return precisao + ((int)Math.floor(agi / 2));
+    }
+    public int getCriticoChance(){
+        if(this.tipo){
+            return criticoChance + ((int)Math.floor(agi/4));
+        }else{
+            return criticoChance;
+        }
+    }
+    public float getCriticoDano() {
+        return criticoDano + ((float)pod / 40);
+    }
+    public float getVelocidade() {
+        if(this.tipo){
+            return velocidade + ((float)vig / 25);
+        }else{
+            // Monstros tem valor fixo de velocidade
+            return velocidade;
+        }
+    }
+    public int getEsquiva() {
+        return esquiva + ((int)Math.floor(agi / 5));
+    }
+    public boolean getTipo(){
+        return tipo;
+    }
+    public String getDescricao(){
+        return descricao;
+    }
+    public int getDificuldade(){
+        return dificuldade;
+    }
+
+    /**
+     * Método utilizado exclusivamente na Tela de Criação de Personagem
+     * para mostrar os valores ao novo personagem sem ter que acessar o 
+     * banco a cada mudança de atributo.
+     * @param pod Atributo Poder.
+     * @param agi Atributo Agilidade.
+     * @param vig Atributo Vigor.
+     */
+    public void setAtb(int pod, int agi, int vig) {
+        this.pod = pod;
+        this.agi = agi;
+        this.vig = vig;
+    }
+    
+    @Override
+    public String toString() {
+        return "\nClasse: " + classeNome +
+                ", \nhp: " + hp + 
+                ", \ndefesa: " + defesa + 
+                ", \ndano: " + dano + 
+                ", \nprecisao: " + precisao + 
+                ", \ncritico_chance: " + criticoChance + 
+                ", \ncritico_dano: " + criticoDano + 
+                ", \nvelocidade: " + velocidade + 
+                ", \nesquiva: " + esquiva + 
+                ", \ntipo: " + (tipo?"Jogador":"Monstro") +
+                "\nDescrição: " + descricao + "\n";
+    }
+}
